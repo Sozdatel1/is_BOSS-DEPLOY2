@@ -180,7 +180,8 @@ messages:
 whitelist:
   - Realboy9000 
   - Exogenetic-Bot 
-
+blacklist: 
+  - NimsiluBot
 books:
   Torma: "./engines/Torma.bin"
   Optimus: "./engines/OPTIMUS2502.bin"
