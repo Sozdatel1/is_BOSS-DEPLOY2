@@ -160,7 +160,7 @@ challenge:
     - threeCheck
   time_controls:
     - bullet
-    - blitz
+  #  - blitz
   # - rapid
   # - classical
   bot_modes:
