@@ -126,10 +126,10 @@ online_moves:
     enabled: true                     # Activate online moves from https://chessdb.cn/queryc_en/
     priority: 250                        # Priority with which this move source is used. Higher priority is used first.
     only_without_book: false              # Whether the chessdb should only be used if there is no matching book.
-    min_candidates: 5                     # Minimum number of candidate moves.
+   # min_candidates: 5                     # Minimum number of candidate moves.
     min_time: 20                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 2                            # Time the server has to respond.
-    selection: "optimal"  
+    best_move: "false"  
     allow_repetitions: true 
     trust_eval: true # Move selection is one of "optimal", "best" or "good".
     #max_depth: 30
