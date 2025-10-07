@@ -203,6 +203,7 @@ whitelist:
   - Supratsa
 blacklist: 
   - NimsiluBot
+online_blacklist:
 
 books:
   Torma: "./engines/Torma.bin"
