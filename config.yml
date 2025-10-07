@@ -158,11 +158,15 @@ challenge:
     - kingOfTheHill
     - racingKings
     - threeCheck
-  time_controls:
+  bot_time_controls:
     - bullet
-  #  - blitz
+    - blitz
   # - rapid
   # - classical
+  human_time_controls:
+    - blitz
+    - rapid
+    - classical
   bot_modes:
     - casual
     - rated
