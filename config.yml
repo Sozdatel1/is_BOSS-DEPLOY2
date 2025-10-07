@@ -129,7 +129,7 @@ online_moves:
    # min_candidates: 5                     # Minimum number of candidate moves.
     min_time: 20                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 2                            # Time the server has to respond.
-    best_move: "false"  
+    best_move: false
     allow_repetitions: true 
     trust_eval: true # Move selection is one of "optimal", "best" or "good".
     #max_depth: 30
