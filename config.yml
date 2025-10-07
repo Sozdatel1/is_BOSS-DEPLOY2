@@ -213,7 +213,7 @@ whitelist:
 blacklist: 
   - NimsiluBot
 online_blacklists:
-  - 
+#  - 
 
 books:
   Torma: "./engines/Torma.bin"
