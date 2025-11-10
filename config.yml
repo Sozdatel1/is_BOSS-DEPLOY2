@@ -205,10 +205,10 @@ matchmaking:
       variant: atomic
 
 messages:
-  greeting: "Humpo Dumpo! I am {me} made by @Supratsa owned by @shahmati23 .Looking forward to start,good luck."
-  goodbye: "Good game!How about a rematch?"
-  greeting_spectators: "Hey, I'm running on {engine} .Type !help for a list of commands."
-  goodbye_spectators: "Thanks For watching!"
+  greeting: "Приветствую! Я {me} работающий на {engine} .Мой создатель @shahmati23 .С нетерпением жду начала, удачи."
+  goodbye: "Хорошая игра! как насчёт реванша?"
+  greeting_spectators: "Приветствую, я работаю на {engine} .Введите !help чтобы увидеть список команд."
+  goodbye_spectators: "Спасибо за просмотр!"
 
 whitelist:
   - shahmati23
