@@ -162,7 +162,7 @@ challenge:
   variants:
     - standard
     - chess960
-   # - antichess
+    - antichess
     - atomic
     - kingOfTheHill
     - racingKings
@@ -170,7 +170,7 @@ challenge:
   bot_time_controls:
     - bullet
     - blitz
-  # - rapid
+    - rapid
   # - classical
   human_time_controls:
     - blitz
@@ -200,16 +200,18 @@ matchmaking:
     hot:
       tc: 0+2
       variant: chess960
+    atom:
+      tc: 1+0
+      variant: atomic
 
 messages:
-  greeting: "Humpo Dumpo! I am {me} made by @Supratsa owned by @VEERSAMRATSINGH .Looking forward to start,good luck."
+  greeting: "Humpo Dumpo! I am {me} made by @Supratsa owned by @shahmati23 .Looking forward to start,good luck."
   goodbye: "Good game!How about a rematch?"
   greeting_spectators: "Hey, I'm running on {engine} .Type !help for a list of commands."
   goodbye_spectators: "Thanks For watching!"
 
 whitelist:
-  - VEERSAMRATSINGH
-  - Supratsa
+  - shahmati23
 blacklist: 
   - NimsiluBot
 online_blacklists:
