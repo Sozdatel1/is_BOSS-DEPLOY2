@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Checkout repository (with LFS support)
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         lfs: true
 
