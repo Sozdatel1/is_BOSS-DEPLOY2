@@ -155,7 +155,7 @@ resign:
   min_rating: 3000
 
 challenge:
-  concurrency: 1
+  concurrency: 3
   max_takebacks: 300000      
   bullet_with_increment_only: false   
 # min_initial: 60
@@ -178,7 +178,7 @@ challenge:
     - classical
   bot_modes:
     - casual
-    - rated
+  #  - rated
   human_modes:
     - casual
    # - rated
@@ -190,13 +190,16 @@ matchmaking:
   types:
     bullet:
       tc: 0.5+0
-      rated: true
+      rated: false
     utsa: 
       tc: 1+0
+      rated: false
     anup:
       tc: 3+0
+      rated: false
     sexy:
       tc: 0+1
+      rated: false
     hot:
       tc: 0+2
       variant: chess960
