@@ -58,6 +58,7 @@ class LichessGame:
         self.gaviota_tablebase = self._get_gaviota_tablebase()
         self.move_sources = self._get_move_sources()
 
+        self.opening_book_counter = 0
         self.opening_explorer_counter = 0
         self.out_of_opening_explorer_counter = 0
         self.cloud_counter = 0
@@ -274,7 +275,7 @@ class LichessGame:
         ):
             return False
 
-        if not self.increment and self.opponent_time < 10.0:
+        if not self.increment and self.opponent_time < 30.0 and self.opponent_time < self.own_time:
             return False
 
         if is_draw is not None:
@@ -310,7 +311,7 @@ class LichessGame:
         ):
             return False
 
-        if not self.increment and self.opponent_time < 10.0:
+        if not self.increment and self.opponent_time < 30.0 and self.opponent_time < self.own_time:
             return False
 
         if is_lost is not None:
@@ -329,7 +330,10 @@ class LichessGame:
         return True
 
     async def _make_book_move(self) -> MoveResponse | None:
-        if self.book_settings.max_depth and self.board.ply() >= self.book_settings.max_depth:
+        if self.book_settings.max_depth is not None and self.board.ply() >= self.book_settings.max_depth:
+            return
+
+        if self.book_settings.max_moves is not None and self.opening_book_counter >= self.book_settings.max_moves:
             return
 
         for name, book_reader in self.book_settings.readers.items():
@@ -356,11 +360,12 @@ class LichessGame:
             else:
                 continue
 
+            self.opening_book_counter += 1
             weight = entry.weight / sum(entry.weight for entry in entries) * 100.0
             learn = entry.learn if self.config.opening_books.read_learn else 0
             name_str = name if len(self.book_settings.readers) > 1 else ""
             public_message = f"Book:    {self._format_move(entry.move):14}"
-            private_message = f"{self._format_book_info(weight, learn)}     {name_str}"
+            private_message = f"{self._format_book_info(weight, learn)}    {name_str}"
             return MoveResponse(entry.move, public_message, private_message=private_message)
 
     def _get_book_settings(self) -> BookSettings:
@@ -375,6 +380,7 @@ class LichessGame:
         return BookSettings(
             books_config.selection,
             books_config.max_depth,
+            books_config.max_moves,
             books_config.allow_repetitions,
             {name: chess.polyglot.open_reader(path) for name, path in books_config.names.items()},
         )
@@ -419,21 +425,28 @@ class LichessGame:
         return check_book_key("standard")
 
     async def _make_opening_explorer_move(self) -> MoveResponse | None:
-        out_of_book = self.out_of_opening_explorer_counter >= 5
-        too_deep = (
-            False
-            if self.config.online_moves.opening_explorer.max_depth is None
-            else self.board.ply() >= self.config.online_moves.opening_explorer.max_depth
-        )
-        out_of_range = self.board.fullmove_number > 25
-        too_many_moves = (
-            False
-            if self.config.online_moves.opening_explorer.max_moves is None
-            else self.opening_explorer_counter >= self.config.online_moves.opening_explorer.max_moves
-        )
-        has_time = self._has_time(self.config.online_moves.opening_explorer.min_time)
+        if self.out_of_opening_explorer_counter >= 5:
+            return
 
-        if out_of_book or too_deep or out_of_range or too_many_moves or not has_time:
+        if self.board.fullmove_number > 25:
+            return
+
+        if self.config.online_moves.opening_explorer.only_without_book and self.opening_book_counter > 0:
+            return
+
+        if (
+            self.config.online_moves.opening_explorer.max_moves is not None
+            and self.opening_explorer_counter >= self.config.online_moves.opening_explorer.max_moves
+        ):
+            return
+
+        if (
+            self.config.online_moves.opening_explorer.max_depth is not None
+            and self.board.ply() >= self.config.online_moves.opening_explorer.max_depth
+        ):
+            return
+
+        if not self._has_time(self.config.online_moves.opening_explorer.min_time):
             return
 
         if self.config.online_moves.opening_explorer.player:
@@ -512,20 +525,25 @@ class LichessGame:
         return max(moves, key=itemgetter("performance"))
 
     async def _make_cloud_move(self) -> MoveResponse | None:
-        out_of_book = self.out_of_cloud_counter >= 5
-        too_deep = (
-            False
-            if self.config.online_moves.lichess_cloud.max_depth is None
-            else self.board.ply() >= self.config.online_moves.lichess_cloud.max_depth
-        )
-        too_many_moves = (
-            False
-            if self.config.online_moves.lichess_cloud.max_moves is None
-            else self.cloud_counter >= self.config.online_moves.lichess_cloud.max_moves
-        )
-        has_time = self._has_time(self.config.online_moves.lichess_cloud.min_time)
+        if self.out_of_cloud_counter >= 5:
+            return
 
-        if out_of_book or too_deep or too_many_moves or not has_time:
+        if self.config.online_moves.lichess_cloud.only_without_book and self.opening_book_counter > 0:
+            return
+
+        if (
+            self.config.online_moves.lichess_cloud.max_moves is not None
+            and self.cloud_counter >= self.config.online_moves.lichess_cloud.max_moves
+        ):
+            return
+
+        if (
+            self.config.online_moves.lichess_cloud.max_depth is not None
+            and self.board.ply() >= self.config.online_moves.lichess_cloud.max_depth
+        ):
+            return
+
+        if not self._has_time(self.config.online_moves.lichess_cloud.min_time):
             return
 
         start_time = time.perf_counter()
@@ -561,25 +579,32 @@ class LichessGame:
         if self.config.online_moves.lichess_cloud.trust_eval:
             self.scores.append(score)
 
-        message = f"Cloud:   {self._format_move(pv[0]):14} {self._format_score(score)}     Depth: {response['depth']}"
+        message = f"Cloud:   {self._format_move(pv[0]):14} {self._format_score(score)}    Depth: {response['depth']}"
         return MoveResponse(pv[0], message, pv=pv, trusted_eval=self.config.online_moves.lichess_cloud.trust_eval)
 
     async def _make_chessdb_move(self) -> MoveResponse | None:
-        out_of_book = self.out_of_chessdb_counter >= 5
-        too_deep = (
-            False
-            if self.config.online_moves.chessdb.max_depth is None
-            else self.board.ply() >= self.config.online_moves.chessdb.max_depth
-        )
-        too_many_moves = (
-            False
-            if self.config.online_moves.chessdb.max_moves is None
-            else self.chessdb_counter >= self.config.online_moves.chessdb.max_moves
-        )
-        has_time = self._has_time(self.config.online_moves.chessdb.min_time)
-        is_endgame = chess.popcount(self.board.occupied) <= 7
+        if self.out_of_chessdb_counter >= 5:
+            return
 
-        if out_of_book or too_deep or too_many_moves or not has_time or is_endgame:
+        if self.config.online_moves.chessdb.only_without_book and self.opening_book_counter > 0:
+            return
+
+        if (
+            self.config.online_moves.chessdb.max_moves is not None
+            and self.chessdb_counter >= self.config.online_moves.chessdb.max_moves
+        ):
+            return
+
+        if (
+            self.config.online_moves.chessdb.max_depth is not None
+            and self.board.ply() >= self.config.online_moves.chessdb.max_depth
+        ):
+            return
+
+        if not self._has_time(self.config.online_moves.chessdb.min_time):
+            return
+
+        if chess.popcount(self.board.occupied) <= 7:
             return
 
         start_time = time.perf_counter()
@@ -609,7 +634,7 @@ class LichessGame:
         if self.config.online_moves.chessdb.trust_eval:
             self.scores.append(score)
 
-        message = f"ChessDB: {self._format_move(pv[0]):14} {self._format_score(score)}     Depth: {response['depth']}"
+        message = f"ChessDB: {self._format_move(pv[0]):14} {self._format_score(score)}    Depth: {response['depth']}"
         move = self._to_chess960(pv[0]) if self.board.chess960 else pv[0]
         return MoveResponse(move, message, pv=pv, trusted_eval=self.config.online_moves.chessdb.trust_eval)
 
@@ -860,7 +885,7 @@ class LichessGame:
         info_depth = info.get("depth")
         info_seldepth = info.get("seldepth")
         depth_str = f"{info_depth}/{info_seldepth}"
-        depth = f"{depth_str:6}" if info_depth and info_seldepth else 6 * " "
+        depth = f"{depth_str:7}" if info_depth and info_seldepth else 7 * " "
 
         info_nodes = info.get("nodes")
         nodes = f"Nodes: {self._format_number(info_nodes)}" if info_nodes else 14 * " "
@@ -879,7 +904,7 @@ class LichessGame:
 
         info_tbhits = info.get("tbhits")
         tbhits = f"TB: {self._format_number(info_tbhits)}" if info_tbhits else ""
-        delimiter = 5 * " "
+        delimiter = 4 * " "
 
         return delimiter.join((score, depth, nodes, nps, time_str, hashfull, tbhits))
 
@@ -914,21 +939,21 @@ class LichessGame:
         dtz_str = f"DTZ: {dtz}" if dtz else ""
         dtm_str = f"DTM: {dtm}" if dtm else ""
         dtc_str = f"DTC: {dtc}" if dtc else ""
-        delimiter = 5 * " "
+        delimiter = 4 * " "
 
         return delimiter.join(filter(None, [outcome_str, dtz_str, dtm_str, dtc_str]))
 
     @staticmethod
     def _format_book_info(weight: float, learn: int) -> str:
-        output = f"{weight:>5.0f} %"
-        if learn:
-            output += f"     Performance: {learn >> 20}"
-            win = (learn >> 10 & 0b1111111111) / 10.2
-            draw = (learn & 0b1111111111) / 10.2
-            loss = max(100.0 - win - draw, 0.0)
-            output += f"     WDL: {win:5.1f} % {draw:5.1f} % {loss:5.1f} %"
+        base_info = f"{weight:>5.0f} %"
+        if not learn:
+            return base_info
 
-        return output
+        win = ((learn >> 10) & 0x3FF) / 10.2
+        draw = (learn & 0x3FF) / 10.2
+        loss = max(100.0 - win - draw, 0.0)
+
+        return f"{base_info}    Performance: {learn >> 20}    WDL: {win:5.1f} % {draw:5.1f} % {loss:5.1f} %"
 
     def _get_move_sources(self) -> list[Callable[[], Awaitable[MoveResponse | None]]]:
         sources: list[Callable[[], Awaitable[MoveResponse | None]]] = []
@@ -969,7 +994,6 @@ class LichessGame:
                     method=self._make_opening_explorer_move,
                     priority=explorer_config.priority,
                     conditions=[
-                        self._check_book_condition(explorer_config.only_without_book),
                         self._check_variant_condition(explorer_config.use_for_variants),
                         self._check_variant_condition(explorer_config.player != "masters"),
                     ],
@@ -982,10 +1006,7 @@ class LichessGame:
                 MoveSource(
                     method=self._make_cloud_move,
                     priority=cloud_config.priority,
-                    conditions=[
-                        self._check_book_condition(cloud_config.only_without_book),
-                        self._check_variant_condition(cloud_config.use_for_variants),
-                    ],
+                    conditions=[self._check_variant_condition(cloud_config.use_for_variants)],
                 )
             )
 
@@ -995,17 +1016,11 @@ class LichessGame:
                 MoveSource(
                     method=self._make_chessdb_move,
                     priority=chessdb_config.priority,
-                    conditions=[
-                        self._check_book_condition(chessdb_config.only_without_book),
-                        self.board.uci_variant == "chess",
-                    ],
+                    conditions=[self.board.uci_variant == "chess"],
                 )
             )
 
         return sources
-
-    def _check_book_condition(self, only_without_book: bool) -> bool:
-        return not only_without_book or not self.book_settings.readers
 
     def _check_variant_condition(self, variant_condition: bool) -> bool:
         return self.board.uci_variant == "chess" or variant_condition

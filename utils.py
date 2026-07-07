@@ -15,6 +15,21 @@ ALIASES = {
     Variant.THREE_CHECK: ["Three-check", "Threecheck", "3-check", "3check"],
 }
 
+PRIORITIES = {
+    "BOT": 1,
+    "LM": -1,
+    "WNM": -2,
+    "WCM": -3,
+    "CM": -4,
+    "NM": -5,
+    "WFM": -6,
+    "FM": -7,
+    "WIM": -8,
+    "IM": -9,
+    "WGM": -10,
+    "GM": -11,
+}
+
 
 def find_variant(name: str) -> Variant | None:
     for variant, aliases in ALIASES.items():
@@ -22,16 +37,20 @@ def find_variant(name: str) -> Variant | None:
             return variant
 
 
+def get_estimated_game_duration(initial: int, increment: int) -> float:
+    return max(initial, 3) * 1.33 + increment * 104.77
+
+
 def get_future_timestamp(seconds: int) -> str:
     return (datetime.now() + timedelta(seconds=seconds)).isoformat(sep=" ", timespec="seconds")
 
 
 def ml_print(prefix: str, suffix: str) -> None:
-    if len(prefix) + len(suffix) <= 128:
+    if len(prefix) + len(suffix) <= 123:
         print(prefix + suffix)
         return
 
-    width = 128 - len(prefix)
+    width = 123 - len(prefix)
     indentation = " " * len(prefix)
     lines = textwrap.wrap(suffix, width=width, break_long_words=False, break_on_hyphens=False)
     print(prefix + lines[0])

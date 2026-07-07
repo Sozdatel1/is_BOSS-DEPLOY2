@@ -1,6 +1,8 @@
 import asyncio
 from typing import Any
 
+from chess.engine import EngineTerminatedError
+
 from api import API
 from botli_dataclasses import GameInformation
 from chatter import Chatter
@@ -95,7 +97,18 @@ class Game:
         await lichess_game.close()
 
     async def _make_move(self, lichess_game: LichessGame, chatter: Chatter) -> None:
-        lichess_move = await lichess_game.make_move()
+        try:
+            lichess_move = await lichess_game.make_move()
+        except EngineTerminatedError:
+            if not lichess_game.is_abortable:
+                raise
+
+            print("Engine crashed. Aborting game ...")
+            await self.api.abort_game(self.game_id)
+            await chatter.send_crash_message()
+            self.move_task = None
+            return
+
         if lichess_move.resign:
             await self.api.resign_game(self.game_id)
         else:
@@ -118,7 +131,7 @@ class Game:
         opponents_str = f"{info.white_str}   -   {info.black_str}"
         message = " • ".join([info.id_str, opponents_str, info.tc_format, info.rated_str, info.variant_str])
 
-        print(f"\n{message}\n{128 * '‾'}")
+        print(f"\n{message}\n{123 * '‾'}")
 
     def _print_result_message(
         self, game_state: dict[str, Any], lichess_game: LichessGame, info: GameInformation
@@ -185,4 +198,4 @@ class Game:
         opponents_str = f"{info.white_str} {white_result} - {black_result} {info.black_str}"
         message = " • ".join([info.id_str, opponents_str, message])
 
-        print(f"{message}\n{128 * '‾'}")
+        print(f"{message}\n{123 * '‾'}")

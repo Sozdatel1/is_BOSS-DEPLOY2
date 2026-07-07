@@ -9,7 +9,7 @@ import chess.engine
 from chess.polyglot import MemoryMappedReader
 
 from enums import ChallengeColor, PerfType, Variant
-from utils import find_variant, parse_time_control
+from utils import PRIORITIES, find_variant, get_estimated_game_duration, parse_time_control
 
 
 @dataclass(kw_only=True)
@@ -29,6 +29,7 @@ class ApiChallengeResponse:
 class BookSettings:
     selection: Literal["weighted_random", "uniform_random", "best_move"] = "best_move"
     max_depth: int | None = None
+    max_moves: int | None = None
     allow_repetitions: bool | None = None
     readers: dict[str, MemoryMappedReader] = field(default_factory=dict)
 
@@ -36,7 +37,7 @@ class BookSettings:
 @dataclass
 class Bot:
     username: str
-    rating_diffs: dict[PerfType, int]
+    ratings: dict[PerfType, int]
 
     def __eq__(self, value: object) -> bool:
         if isinstance(value, Bot):
@@ -51,7 +52,15 @@ class Bot:
 @dataclass
 class Challenge:
     challenge_id: str
-    opponent_username: str
+    priority: int
+
+    @classmethod
+    def from_challenge_event(cls, challenge_event: dict[str, Any]) -> "Challenge":
+        challenge_id = challenge_event["id"]
+        title = challenge_event["challenger"].get("title")
+        priority = PRIORITIES.get(title, 0)
+
+        return Challenge(challenge_id, priority)
 
     def __eq__(self, value: object) -> bool:
         if isinstance(value, Challenge):
@@ -344,9 +353,10 @@ class MatchmakingType:
     weight: float
     min_rating_diff: int | None
     max_rating_diff: int | None
+    target_rating_diff: int
 
     def __post_init__(self) -> None:
-        self.estimated_game_duration = timedelta(seconds=max(self.initial_time, 3) * 1.34 + self.increment * 91.76)
+        self.estimated_game_duration = timedelta(seconds=get_estimated_game_duration(self.initial_time, self.increment))
 
     def __str__(self) -> str:
         initial_time_min = self.initial_time / 60
@@ -363,7 +373,7 @@ class MatchmakingType:
         tc_str = f"TC: {initial_time_str}+{self.increment}"
         rated_str = "Rated" if self.rated else "Casual"
         variant_str = f"Variant: {self.variant}"
-        delimiter = 5 * " "
+        delimiter = 4 * " "
 
         return delimiter.join([self.name, tc_str, rated_str, variant_str])
 

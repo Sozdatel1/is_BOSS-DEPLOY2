@@ -7,6 +7,7 @@ import psutil
 from api import API
 from botli_dataclasses import ChatMessage, GameInformation
 from config import Config
+from enums import Variant
 from lichess_game import LichessGame
 from utils import ml_print
 
@@ -88,10 +89,15 @@ class Chatter:
 
     async def send_abortion_message(self) -> None:
         await self.api.send_chat_message(
-            self.game_info.id_,
-            "player",
-            ("Too bad you weren't there. Feel free to challenge me again, I will accept the challenge if possible."),
+            self.game_info.id_, "player", "Too bad you weren't there. Feel free to challenge me again."
         )
+
+    async def send_crash_message(self) -> None:
+        if self.game_info.variant == Variant.FROM_POSITION:
+            text = "It seems my engine can't play this position, feel free to try another one."
+        else:
+            text = "Oops, looks like my engine crashed. Sorry!"
+        await self.api.send_chat_message(self.game_info.id_, "player", text)
 
     async def _handle_command(self, chat_message: ChatMessage, takeback_count: int, max_takebacks: int) -> None:
         match chat_message.text[1:].lower():
@@ -217,8 +223,19 @@ class Chatter:
 
     @staticmethod
     def _get_variants_message(config: Config) -> str:
-        variants = ", ".join(config.challenge.variants)
-        return f"Accepted variants: {variants}"
+        if config.challenge.human.variants == config.challenge.bot.variants:
+            variants = ", ".join(config.challenge.human.variants)
+            return f"Accepted variants: {variants}"
+
+        parts = []
+
+        if config.challenge.human.variants:
+            parts.append(f"Humans: {', '.join(config.challenge.human.variants)}")
+
+        if config.challenge.bot.variants:
+            parts.append(f"Bots: {', '.join(config.challenge.bot.variants)}")
+
+        return " ".join(parts)
 
     def _get_draw_message(self, config: Config) -> str:
         too_low_rating = (
@@ -246,38 +263,24 @@ class Chatter:
     def _get_challenge_message(self, config: Config) -> str:
         parts = []
 
-        if config.challenge.human_modes and config.challenge.human_time_controls:
-            modes = ", ".join(config.challenge.human_modes)
-            tcs = ", ".join(config.challenge.human_time_controls)
+        if config.challenge.human.modes and config.challenge.human.time_controls:
+            modes = ", ".join(config.challenge.human.modes)
+            tcs = ", ".join(config.challenge.human.time_controls)
+            if config.challenge.human.bullet_with_increment_only:
+                tcs = tcs.replace("bullet", "bullet (with increment)")
             parts.append(f"Humans ({modes}): {tcs}")
 
-        if config.challenge.bot_modes and config.challenge.bot_time_controls:
-            modes = ", ".join(config.challenge.bot_modes)
-            tcs = ", ".join(config.challenge.bot_time_controls)
-            if config.challenge.bullet_with_increment_only:
+        if config.challenge.bot.modes and config.challenge.bot.time_controls:
+            modes = ", ".join(config.challenge.bot.modes)
+            tcs = ", ".join(config.challenge.bot.time_controls)
+            if config.challenge.bot.bullet_with_increment_only:
                 tcs = tcs.replace("bullet", "bullet (with increment)")
             parts.append(f"Bots ({modes}): {tcs}")
 
         if not parts:
             return f"{self.username} does not accept challenges."
 
-        message = f"{'. '.join(parts)}."
-
-        if config.challenge.min_initial not in {None, 0} and config.challenge.max_initial not in {None, 10800}:
-            message += f" Initial: {config.challenge.min_initial}-{config.challenge.max_initial}s."
-        elif config.challenge.min_initial not in {None, 0}:
-            message += f" Min initial: {config.challenge.min_initial}s"
-        elif config.challenge.max_initial not in {None, 10800}:
-            message += f" Max initial: {config.challenge.max_initial}s"
-
-        if config.challenge.min_increment not in {None, 0} and config.challenge.max_increment not in {None, 180}:
-            message += f" Increment: {config.challenge.min_increment}-{config.challenge.max_increment}s."
-        elif config.challenge.min_increment not in {None, 0}:
-            message += f" Min increment: {config.challenge.min_increment}s"
-        elif config.challenge.max_increment not in {None, 180}:
-            message += f" Max increment: {config.challenge.max_increment}s"
-
-        return message
+        return " ".join(parts)
 
     def _format_message(self, message: str | None) -> str | None:
         if not message:

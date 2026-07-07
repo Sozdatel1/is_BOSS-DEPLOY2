@@ -3,19 +3,15 @@ from typing import Any
 from config import Config
 from enums import DeclineReason
 from game_manager import GameManager
-from utils import parse_time_control
+from utils import get_estimated_game_duration, parse_time_control
 
 
 class ChallengeValidator:
     def __init__(self, config: Config, game_manager: GameManager) -> None:
         self.config = config
         self.game_manager = game_manager
-        self.bot_time_controls = self._get_time_controls(self.config.challenge.bot_time_controls)
-        self.human_time_controls = self._get_time_controls(self.config.challenge.human_time_controls)
-        self.min_increment = 0 if config.challenge.min_increment is None else config.challenge.min_increment
-        self.max_increment = 180 if config.challenge.max_increment is None else config.challenge.max_increment
-        self.min_initial = 0 if config.challenge.min_initial is None else config.challenge.min_initial
-        self.max_initial = 10800 if config.challenge.max_initial is None else config.challenge.max_initial
+        self.bot_time_controls = self._get_time_controls(self.config.challenge.bot.time_controls)
+        self.human_time_controls = self._get_time_controls(self.config.challenge.human.time_controls)
 
     def get_decline_reason(self, challenge_event: dict[str, Any]) -> DeclineReason | None:
         speed: str = challenge_event["speed"]
@@ -27,9 +23,19 @@ class ChallengeValidator:
             print('Time control "Correspondence" is not supported by BotLi.')
             return DeclineReason.TIME_CONTROL
 
-        variant: str = challenge_event["variant"]["key"]
-        if variant not in self.config.challenge.variants:
-            print(f'Variant "{variant}" is not allowed according to config.')
+        is_bot = challenge_event["challenger"].get("title") == "BOT"
+        opponent_config = self.config.challenge.bot if is_bot else self.config.challenge.human
+
+        if not opponent_config.variants:
+            if is_bot:
+                print("Bots are not allowed according to config.")
+                return DeclineReason.NO_BOT
+
+            print("Only bots are allowed according to config.")
+            return DeclineReason.ONLY_BOT
+
+        if challenge_event["variant"]["key"] not in opponent_config.variants:
+            print(f'Variant "{challenge_event["variant"]["key"]}" is not allowed according to config.')
             return DeclineReason.VARIANT
 
         if (
@@ -45,13 +51,11 @@ class ChallengeValidator:
             print("Challenger is blacklisted.")
             return DeclineReason.GENERIC
 
-        if not (self.config.challenge.bot_modes or self.config.challenge.human_modes):
+        if not (self.config.challenge.bot.modes or self.config.challenge.human.modes):
             print("Neither bots nor humans are allowed according to config.")
             return DeclineReason.GENERIC
 
-        is_bot: bool = challenge_event["challenger"].get("title") == "BOT"
-        modes = self.config.challenge.bot_modes if is_bot else self.config.challenge.human_modes
-        if modes is None:
+        if not opponent_config.modes:
             if is_bot:
                 print("Bots are not allowed according to config.")
                 return DeclineReason.NO_BOT
@@ -59,45 +63,55 @@ class ChallengeValidator:
             print("Only bots are allowed according to config.")
             return DeclineReason.ONLY_BOT
 
-        increment: int = challenge_event["timeControl"]["increment"]
-        initial: int = challenge_event["timeControl"]["limit"]
-        speeds = self.config.challenge.bot_time_controls if is_bot else self.config.challenge.human_time_controls
-        if not speeds:
-            print("No time control is allowed according to config.")
-            return DeclineReason.GENERIC
+        if not opponent_config.time_controls:
+            if is_bot:
+                print("Bots are not allowed according to config.")
+                return DeclineReason.NO_BOT
 
+            print("Only bots are allowed according to config.")
+            return DeclineReason.ONLY_BOT
+
+        initial: int = challenge_event["timeControl"]["limit"]
+        increment: int = challenge_event["timeControl"]["increment"]
         time_controls = self.bot_time_controls if is_bot else self.human_time_controls
-        if speed not in speeds and (initial, increment) not in time_controls:
+        if speed not in opponent_config.time_controls and (initial, increment) not in time_controls:
             print(f'Time control "{speed}" is not allowed according to config.')
             return DeclineReason.TIME_CONTROL
 
-        if increment < self.min_increment:
+        if opponent_config.min_increment and increment < opponent_config.min_increment:
             print(f"Increment {increment} is too short according to config.")
             return DeclineReason.TOO_FAST
 
-        if increment > self.max_increment:
+        if opponent_config.max_increment and increment > opponent_config.max_increment:
             print(f"Increment {increment} is too long according to config.")
             return DeclineReason.TOO_SLOW
 
-        if initial < self.min_initial:
+        if opponent_config.min_initial and initial < opponent_config.min_initial:
             print(f"Initial time {initial} is too short according to config.")
             return DeclineReason.TOO_FAST
 
-        if initial > self.max_initial:
+        if opponent_config.max_initial and initial > opponent_config.max_initial:
             print(f"Initial time {initial} is too long according to config.")
             return DeclineReason.TOO_SLOW
 
-        if is_bot and speed == "bullet" and increment == 0 and self.config.challenge.bullet_with_increment_only:
-            print("Bullet against bots is only allowed with increment according to config.")
+        if (
+            opponent_config.max_estimated_game_duration
+            and (estimated_game_duration := round(get_estimated_game_duration(initial, increment) / 60))
+            > opponent_config.max_estimated_game_duration
+        ):
+            print(f"Estimated game duration ({estimated_game_duration} minutes) is too long according to config.")
+            return DeclineReason.TOO_SLOW
+
+        if speed == "bullet" and increment == 0 and opponent_config.bullet_with_increment_only:
+            print("Bullet is only allowed with increment according to config.")
             return DeclineReason.TOO_FAST
 
         is_rated: bool = challenge_event["rated"]
-        is_casual = not is_rated
-        if is_rated and "rated" not in modes:
+        if is_rated and "rated" not in opponent_config.modes:
             print("Rated is not allowed according to config.")
             return DeclineReason.CASUAL
 
-        if is_casual and "casual" not in modes:
+        if not is_rated and "casual" not in opponent_config.modes:
             print("Casual is not allowed according to config.")
             return DeclineReason.RATED
 

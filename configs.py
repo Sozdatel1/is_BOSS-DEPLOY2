@@ -38,6 +38,7 @@ class GaviotaConfig:
 class BooksConfig:
     selection: Literal["weighted_random", "uniform_random", "best_move"]
     max_depth: int | None
+    max_moves: int | None
     allow_repetitions: bool | None
     names: dict[str, str]
 
@@ -132,19 +133,24 @@ class ResignConfig:
 
 
 @dataclass
-class ChallengeConfig:
-    concurrency: int
-    max_takebacks: int
+class ChallengeOpponentConfig:
     bullet_with_increment_only: bool
     min_increment: int | None
     max_increment: int | None
     min_initial: int | None
     max_initial: int | None
+    max_estimated_game_duration: int | None
     variants: list[str]
-    bot_time_controls: list[str]
-    human_time_controls: list[str]
-    bot_modes: list[str]
-    human_modes: list[str]
+    time_controls: list[str]
+    modes: list[str]
+
+
+@dataclass
+class ChallengeConfig:
+    concurrency: int
+    max_takebacks: int
+    human: ChallengeOpponentConfig
+    bot: ChallengeOpponentConfig
 
 
 @dataclass
@@ -169,6 +175,7 @@ class MatchmakingTypeConfig:
     multiplier: int | None
     min_rating_diff: int | None
     max_rating_diff: int | None
+    target_rating_diff: int | None
 
 
 @dataclass

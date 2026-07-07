@@ -28,7 +28,7 @@ class GameManager:
         self.is_running = True
         self.matchmaking_enabled = False
         self.next_matchmaking: float | None = None
-        self.open_challenges: deque[Challenge] = deque()
+        self.open_challenges: list[Challenge] = []
         self.reserved_game_spots = 0
         self.started_game_events: deque[dict[str, Any]] = deque()
         self.tasks: dict[Task[None], Game] = {}
@@ -111,7 +111,7 @@ class GameManager:
 
     def start_matchmaking(self) -> None:
         self.matchmaking_enabled = True
-        self._set_next_matchmaking(1)
+        self._set_next_matchmaking(1, force=True)
         self.changed_event.set()
 
     def stop_matchmaking(self) -> bool:
@@ -205,11 +205,11 @@ class GameManager:
         self._set_next_matchmaking(self.config.matchmaking.delay)
         self.changed_event.set()
 
-    def _set_next_matchmaking(self, delay: int) -> None:
+    def _set_next_matchmaking(self, delay: int, force: bool = False) -> None:
         if not self.matchmaking_enabled:
             return
 
-        if self.is_rate_limited:
+        if self.is_rate_limited and not force:
             return
 
         self.next_matchmaking = asyncio.get_running_loop().time() + delay
@@ -252,7 +252,8 @@ class GameManager:
         if self.is_busy:
             return
 
-        return self.open_challenges.popleft()
+        self.open_challenges.sort(key=lambda challenge: challenge.priority)
+        return self.open_challenges.pop(0)
 
     async def _accept_challenge(self, challenge: Challenge) -> None:
         if await self.api.accept_challenge(challenge.challenge_id):

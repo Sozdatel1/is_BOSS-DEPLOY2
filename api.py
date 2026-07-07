@@ -214,8 +214,8 @@ class API:
 
     async def get_egtb(self, fen: str, variant: str, timeout: int) -> dict[str, Any] | None:
         try:
-            async with self.external_session.get(
-                f"https://tablebase.lichess.ovh/{variant}",
+            async with self.lichess_session.get(
+                f"https://tablebase.lichess.org/{variant}",
                 params={"fen": fen},
                 timeout=aiohttp.ClientTimeout(total=timeout),
             ) as response:
@@ -242,17 +242,17 @@ class API:
 
     @retry(**JSON_RETRY_CONDITIONS)
     async def get_online_bots(self) -> list[dict[str, Any]]:
-        async with self.lichess_session.get("/api/bot/online", timeout=STREAM_TIMEOUT) as response:
+        async with self.lichess_session.get("/api/bot/online", params={"nb": 512}, timeout=STREAM_TIMEOUT) as response:
             return [json.loads(line) async for line in response.content if line.strip()]
 
     async def get_opening_explorer(
         self, username: str, fen: str, variant: Variant, color: str, modes: str | None, speeds: str | None, timeout: int
     ) -> dict[str, Any] | None:
         if username == "masters":
-            url = "https://explorer.lichess.ovh/masters"
+            url = "https://explorer.lichess.org/masters"
             params = {"fen": fen, "topGames": 0}
         else:
-            url = "https://explorer.lichess.ovh/player"
+            url = "https://explorer.lichess.org/player"
             params = {"player": username, "variant": variant, "fen": fen, "color": color, "recentGames": 0}
             if speeds:
                 params["speeds"] = speeds
@@ -260,7 +260,7 @@ class API:
                 params["modes"] = modes
 
         try:
-            async with self.external_session.get(
+            async with self.lichess_session.get(
                 url, params=params, timeout=aiohttp.ClientTimeout(total=timeout)
             ) as response:
                 response.raise_for_status()
@@ -281,6 +281,8 @@ class API:
     @retry(**JSON_RETRY_CONDITIONS)
     async def get_tournament_info(self, tournament_id: str) -> dict[str, Any]:
         async with self.lichess_session.get(f"/api/tournament/{tournament_id}") as response:
+            if response.status == 404:
+                return {}
             return await response.json()
 
     @retry(**JSON_RETRY_CONDITIONS)
