@@ -188,9 +188,9 @@ matchmaking:
   timeout: 30
   selection: cyclic
   types:
-    bullet:
-      tc: 0.5+0
-      rated: false
+    # bullet:
+    #   tc: 0.5+0
+    #   rated: false
     utsa: 
       tc: 1+0
       rated: false
@@ -204,8 +204,18 @@ matchmaking:
       tc: 0+2
       variant: chess960
     atom:
-      tc: 1+0
+      tc: 0.5+0
       variant: atomic
+    rapid:
+      tc: 8+0
+      rated: true
+    check:
+      tc: 1+0
+      variant: threeCheck
+    hill:
+      tc: 1+0
+      variant: kingOfTheHill
+      
 
 messages:
   greeting: "Приветствую! Я {me} работающий на {engine} .Мой создатель @shahmati23 .С нетерпением жду начала, удачи."
