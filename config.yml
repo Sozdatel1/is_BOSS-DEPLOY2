@@ -163,6 +163,7 @@ challenge:
   bot:
     variants:
       - standard
+      - crazyhouse
       - chess960
       - antichess
       - atomic
@@ -183,6 +184,7 @@ challenge:
   human:
     variants:
       - standard
+      - crazyhouse
       - chess960
       - antichess
       - atomic
@@ -240,6 +242,9 @@ matchmaking:
     anti:
       tc: 1+0
       variant: antichess
+    crazy:
+      tc: 1+0
+      variant: crazyhouse
       
 
 messages:
