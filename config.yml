@@ -162,13 +162,13 @@ challenge:
   
   bot:
      variants:
-      - standard
-      - chess960
-      - antichess
-      - atomic
-      - kingOfTheHill
-      - racingKings
-      - threeCheck
+     - standard
+     - chess960
+     - antichess
+     - atomic
+     - kingOfTheHill
+     - racingKings
+     - threeCheck
     bullet_with_increment_only: false
     block_kings: false
     engine_offers: false
@@ -182,13 +182,13 @@ challenge:
    #  - rated
   human:
     variants:
-      - standard
-      - chess960
-      - antichess
-      - atomic
-      - kingOfTheHill
-      - racingKings
-      - threeCheck
+    - standard
+    - chess960
+    - antichess
+    - atomic
+    - kingOfTheHill
+    - racingKings
+    - threeCheck
       
     bullet_with_increment_only: false
     block_kings: false
