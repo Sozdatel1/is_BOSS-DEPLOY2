@@ -234,6 +234,12 @@ matchmaking:
     hill:
       tc: 1+0
       variant: kingOfTheHill
+    racing:
+      tc: 1+0
+      variant: racingKings
+    anti:
+      tc: 1+0
+      variant: antichess
       
 
 messages:
