@@ -157,32 +157,51 @@ resign:
 challenge:
   concurrency: 3
   max_takebacks: 300000      
-  bullet_with_increment_only: false   
+   
 # min_initial: 60
-  variants:
-    - standard
-    - chess960
-    - antichess
-    - atomic
-    - kingOfTheHill
-    - racingKings
-    - threeCheck
-  bot_time_controls:
-    - bullet
-    - blitz
-    - rapid
-  # - classical
-  human_time_controls:
-    - blitz
-    - rapid
-    - classical
-  bot_modes:
-    - casual
-  #  - rated
-  human_modes:
-    - casual
-   # - rated
-
+  
+  bot:
+     variants:
+      - standard
+      - chess960
+      - antichess
+      - atomic
+      - kingOfTheHill
+      - racingKings
+      - threeCheck
+    bullet_with_increment_only: false
+    block_kings: false
+    engine_offers: false
+    time_controls:
+      - bullet
+      - blitz
+      - rapid
+    # - classical
+    modes:
+      - casual
+   #  - rated
+  human:
+    variants:
+      - standard
+      - chess960
+      - antichess
+      - atomic
+      - kingOfTheHill
+      - racingKings
+      - threeCheck
+      
+    bullet_with_increment_only: false
+    block_kings: false
+    engine_offers: false
+    
+    time_controls:
+      - blitz
+      - rapid
+      - classical
+    modes:
+      - casual
+    # - rated
+    
 matchmaking:
   delay: 580
   timeout: 30
