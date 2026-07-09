@@ -224,27 +224,34 @@ matchmaking:
     hot:
       tc: 0+2
       variant: chess960
+      rated: true
     atom:
       tc: 0.5+0
       variant: atomic
+      rated: true
     rapid:
       tc: 8+0
       rated: true
     check:
       tc: 1+0
       variant: threeCheck
+      rated: true
     hill:
       tc: 1+0
       variant: kingOfTheHill
+      rated: true
     racing:
       tc: 1+0
       variant: racingKings
+      rated: true
     anti:
       tc: 1+0
       variant: antichess
+      rated: true
     crazy:
       tc: 1+0
       variant: crazyhouse
+      rated: true
       
 
 messages:
