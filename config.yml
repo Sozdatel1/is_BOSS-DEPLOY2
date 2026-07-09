@@ -167,6 +167,7 @@ challenge:
       - chess960
       - antichess
       - atomic
+      - horde
       - kingOfTheHill
       - racingKings
       - threeCheck
@@ -188,6 +189,7 @@ challenge:
       - chess960
       - antichess
       - atomic
+      - horde
       - kingOfTheHill
       - racingKings
       - threeCheck
@@ -252,6 +254,11 @@ matchmaking:
       tc: 1+0
       variant: crazyhouse
       rated: true
+    horde:
+      tc: 1+0
+      variant: horde
+      rated: true
+      
       
 
 messages:
