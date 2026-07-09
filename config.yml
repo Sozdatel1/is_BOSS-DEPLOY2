@@ -178,10 +178,10 @@ challenge:
       - bullet
       - blitz
       - rapid
-    # - classical
+      - classical
     modes:
       - casual
-   #  - rated
+      - rated
   human:
     variants:
       - standard
@@ -216,13 +216,13 @@ matchmaking:
     #   rated: false
     utsa: 
       tc: 1+0
-      rated: false
+      rated: true
     anup:
       tc: 3+0
-      rated: false
+      rated: true
     sexy:
       tc: 0+1
-      rated: false
+      rated: true
     hot:
       tc: 0+2
       variant: chess960
@@ -257,6 +257,9 @@ matchmaking:
     horde:
       tc: 1+0
       variant: horde
+      rated: true
+    class:
+      tc: 25+0
       rated: true
       
       
