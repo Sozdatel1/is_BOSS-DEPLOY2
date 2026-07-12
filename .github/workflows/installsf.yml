@@ -18,28 +18,20 @@ jobs:
           # Подставляем твой созданный Classic Token с правами repo и workflow
           token: ${{ secrets.BOT_TOKEN }}
 
-      - name: Download and extract Stockfish
-        run: |
-          # 1. Скачиваем официальный .tar архив для Ubuntu
-          curl -L "https://github.com/official-stockfish/Stockfish/releases/download/sf_18/stockfish-ubuntu-x86-64-bmi2.tar" -o stockfish.tar
-          
-          # 2. Распаковываем чистый tar без флага -z
-          tar -xf stockfish.tar
-      
+            # ... шаги скачивания и распаковки остаются те же ...
+
+       Tar -xf stockfish.tar
 
       - name: Move Stockfish binary to engines folder
         run: |
-          mkdir -p engines
+          Mkdir -p engines
           
-          # Если файл внутри папки, этот скрипт найдет его и перенесет куда надо
-          if [ -d "stockfish-ubuntu-x86-64-bmi2" ]; then
-            mv stockfish-ubuntu-x86-64-bmi2/stockfish-ubuntu-x86-64-bmi2 engines/
-          else
-            mv stockfish-ubuntu-x86-64-bmi2 engines/
-          fi
+          # Забираем файл 'stockfish' (он создался после распаковки) 
+          # и перемещаем его в папку engines под твоим рабочим именем
+          Mv stockfish engines/stockfish-ubuntu-x86-64-bmi2
           
-          chmod +x engines/stockfish-ubuntu-x86-64-bmi2
-
+          # Выдаем права на запуск
+          Chmod +x engines/stockfish-ubuntu-x86-64-bmi2
 
       - name: Clean up
         run: rm -f stockfish.tar
