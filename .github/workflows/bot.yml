@@ -1,8 +1,7 @@
 name: Run bot
-
-on:
+on: 
   workflow_dispatch:
-  push:
+  push: 
     branches:
       - "main"
     paths:
@@ -37,6 +36,23 @@ jobs:
 
       - name: Inject Secret Token
         run: sed -i "s/TokenTimeIsBackBuddys/${{ secrets.LICHESS_KEY }}/g" config.yml
+        
+      - name: Download Stockfish directly into Container
+        run: |
+          mkdir -p engines
+          
+          # 1. Скачиваем официальный .tar архив Stockfish 18
+          curl -L "https://github.com/official-stockfish/Stockfish/releases/download/sf_18/stockfish-ubuntu-x86-64-bmi2.tar" -o stockfish.tar
+          
+          # 2. Распаковываем его в текущую директорию (без флага -C engines)
+          tar -xf stockfish.tar
+          
+          # 3. Забираем файл 'stockfish' из распакованной папки и кладем в engines под нужным именем
+          mv stockfish-ubuntu-x86-64-bmi2/stockfish engines/stockfish-ubuntu-x86-64-bmi2
+          
+          # 4. Полностью удаляем временный архив и папку с исходниками
+          rm -f stockfish.tar
+          rm -rf stockfish-ubuntu-x86-64-bmi2
 
       - name: Make Stockfish Executable
         run: | 
