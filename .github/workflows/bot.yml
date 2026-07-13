@@ -36,7 +36,11 @@ jobs:
 
       - name: Inject Secret Token
         run: sed -i "s/TokenTimeIsBackBuddys/${{ secrets.LICHESS_KEY }}/g" config.yml
-        
+      - name: Inject Dev Log into Python Code
+        run: |
+          # Находим строчку с syzygy_config и сразу после нее принудительно вставляем наш принт
+          sed -i '/syzygy_config = cls._get_syzygy_config(config, board)/a \        print(f"[DEV INFO] Бот выбрал режим из config.yml: >>> {engine_key} <<<")' user_interface.py 2>/dev/null || true
+          sed -i '/syzygy_config = cls._get_syzygy_config(config, board)/a \        print(f"[DEV INFO] Бот выбрал режим из config.yml: >>> {engine_key} <<<")' lichess_game.py 2>/dev/null || true
       - name: Download Stockfish directly into Container
         run: |
           mkdir -p engines
