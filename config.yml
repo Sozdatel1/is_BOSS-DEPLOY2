@@ -12,6 +12,7 @@ engines:
       Threads: 12 # Max CPU threads the engine can use.
       Hash: 2048 # Max memory (in megabytes) the engine can allocate.
       Move Overhead: 300 # Increase if your bot flags games too often.
+      Contempt: 0
     limits: # Limits that end the move calculation early.
    
   standard:
@@ -19,7 +20,7 @@ engines:
     name: "stockfish-ubuntu-x86-64-bmi2"
     ponder: true
     silence_stderr: false
-    move_overhead_multiplier: 22.5
+    move_overhead_multiplier: 5.0
     uci_options:
       Threads: 4
       Hash: 4100
