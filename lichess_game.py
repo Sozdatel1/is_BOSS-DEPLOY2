@@ -69,7 +69,6 @@ class LichessGame:
         is_white = game_info.white_name == username
         engine_key = cls._get_engine_key(config, board, is_white, game_info)
         syzygy_config = cls._get_syzygy_config(config, board)
-        print(f"[DEV INFO] Бот выбрал режим из config.yml: >>> {engine_key} <<<")
         engine = await Engine.from_config(
             config.engines[engine_key],
             syzygy_config,
