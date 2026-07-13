@@ -1,6 +1,5 @@
 token: "TokenTimeIsBackBuddys"  # Lichess OAuth2 Token.
-engines:
- 
+
 engines:
   bullet: # Engine used for standard chess and when no suitable special engine is configured.
     dir: "./engines" # Directory containing the engine.
