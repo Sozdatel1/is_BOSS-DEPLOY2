@@ -26,7 +26,7 @@ engines:
       Move Overhead: 300 # Increase if your bot flags games too often.
       Contempt: 0
     limits: # Limits that end the move calculation early.
-    
+  
   standard:
     dir: "./engines"
     name: "stockfish-ubuntu-x86-64-bmi2"
