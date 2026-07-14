@@ -48,7 +48,7 @@ engines:
     name: "fairy-stockfish_x86-64-bmi2"
     ponder: false
     silence_stderr: false
-    move_overhead_multiplier: 1.1
+    move_overhead_multiplier: 5.0
     uci_options:
       Threads: 4
       Hash: 2048
