@@ -3,7 +3,6 @@ import random
 import struct
 import time
 from collections.abc import Awaitable, Callable, Iterable
-from itertools import islice
 from operator import itemgetter
 from typing import Any, Literal
 
@@ -150,7 +149,6 @@ class LichessGame:
         for move_source in self.move_sources:
             if move_response := await move_source():
                 self.board.push(move_response.move)
-                await self.engine.start_pondering(self.board)
 
                 print(f"{move_response.public_message} {move_response.private_message}".strip())
                 self.last_message = move_response.public_message
@@ -172,8 +170,6 @@ class LichessGame:
         self.last_pv = info.get("pv", [])
 
         self.board.push(move)
-        if len(self.board.move_stack) <= 2:
-            await self.engine.start_pondering(self.board)
 
         return LichessMove(move.uci(), self._offer_draw(), self._resign())
 
@@ -195,7 +191,6 @@ class LichessGame:
         if self.is_our_turn:
             self.board.pop()
         self.last_pv.clear()
-        await self.start_pondering()
 
     @property
     def is_our_turn(self) -> bool:
@@ -238,9 +233,6 @@ class LichessGame:
 
         return self.white_time, black_time, self.increment
 
-    async def start_pondering(self) -> None:
-        await self.engine.start_pondering(self.board)
-
     async def close(self) -> None:
         await self.engine.close()
 
@@ -280,10 +272,11 @@ class LichessGame:
         if self.board.fullmove_number - subtrahend <= self.config.offer_draw.min_game_length:
             return False
 
-        if len(self.scores) < self.config.offer_draw.consecutive_moves:
+        consecutive_moves = self.config.offer_draw.consecutive_moves
+        if len(self.scores) < consecutive_moves or consecutive_moves <= 0:
             return False
 
-        for score in islice(self.scores, len(self.scores) - self.config.offer_draw.consecutive_moves, None):
+        for score in self.scores[-consecutive_moves:]:
             if abs(score.relative.score(mate_score=40_000)) > self.config.offer_draw.score:
                 return False
 
@@ -312,10 +305,11 @@ class LichessGame:
         if not is_trusted:
             return False
 
-        if len(self.scores) < self.config.resign.consecutive_moves:
+        consecutive_moves = self.config.resign.consecutive_moves
+        if len(self.scores) < consecutive_moves or consecutive_moves <= 0:
             return False
 
-        for score in islice(self.scores, len(self.scores) - self.config.resign.consecutive_moves, None):
+        for score in self.scores[-consecutive_moves:]:
             if score.relative.score(mate_score=40_000) > self.config.resign.score:
                 return False
 
@@ -635,7 +629,7 @@ class LichessGame:
         best_wdl = -2
         best_metric = 1_000_000
         best_real_distance = 0
-        best_opponent_draw_ratio = 1.0
+        best_opponent_draw_moves = 0
 
         board_copy = self.board.copy(stack=False)
 
@@ -664,23 +658,18 @@ class LichessGame:
                 elif wdl > 0:
                     metric -= 10_000
 
-            opponent_draw_ratio = 1.0
+            opponent_draw_moves = 0
             if best_wdl <= 0 and wdl == 0:
-                opponent_moves = list(board_copy.legal_moves)
-                if len(opponent_moves) > 0:
-                    opponent_draw_moves = 0
-                    for opponent_move in opponent_moves:
-                        board_copy.push(opponent_move)
+                for opponent_move in board_copy.legal_moves:
+                    board_copy.push(opponent_move)
 
-                        opponent_distance = -probe_distance(board_copy)
-                        opponent_wdl = self._value_to_wdl(opponent_distance, board_copy.halfmove_clock)
+                    opponent_distance = -probe_distance(board_copy)
+                    opponent_wdl = self._value_to_wdl(opponent_distance, board_copy.halfmove_clock)
 
-                        if opponent_wdl == 0:
-                            opponent_draw_moves += 1
+                    if opponent_wdl == 0:
+                        opponent_draw_moves += 1
 
-                        board_copy.pop()
-
-                    opponent_draw_ratio = opponent_draw_moves / len(opponent_moves)
+                    board_copy.pop()
 
             if best_move:
                 if wdl > best_wdl:
@@ -688,12 +677,12 @@ class LichessGame:
                     best_wdl = wdl
                     best_metric = metric
                     best_real_distance = real_distance
-                    best_opponent_draw_ratio = opponent_draw_ratio
+                    best_opponent_draw_moves = opponent_draw_moves
                 elif wdl == best_wdl:
                     if wdl == 0:
-                        if opponent_draw_ratio < best_opponent_draw_ratio:
+                        if opponent_draw_moves < best_opponent_draw_moves:
                             best_move = move
-                            best_opponent_draw_ratio = opponent_draw_ratio
+                            best_opponent_draw_moves = opponent_draw_moves
                     elif metric < best_metric:
                         best_move = move
                         best_metric = metric
@@ -703,7 +692,7 @@ class LichessGame:
                 best_wdl = wdl
                 best_metric = metric
                 best_real_distance = real_distance
-                best_opponent_draw_ratio = opponent_draw_ratio
+                best_opponent_draw_moves = opponent_draw_moves
 
             board_copy.pop()
 
