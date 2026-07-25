@@ -128,10 +128,8 @@ class UserInterface:
             sys.exit(1)
 
     async def _test_engines(self) -> None:
-        for engine_name, engine_config in self.config.engines.items():
-            print(f'Testing engine "{engine_name}" ... ', end="", flush=True)
+        for engine_config in self.config.engines.values():
             await Engine.test(engine_config)
-            print("OK")
 
     async def _download_online_blacklists(self) -> None:
         for url in self.config.online_blacklists:
@@ -365,10 +363,11 @@ if __name__ == "__main__":
     parser.add_argument("commands", nargs="*", help="Commands that BotLi executes.")
     parser.add_argument("--config", "-c", default="config.yml", help="Path to config.yml.")
     parser.add_argument("--upgrade", "-u", action="store_true", help="Upgrade account to BOT account.")
-    parser.add_argument("--debug", "-d", action="store_true", help="Enable debug logging.")
+    parser.add_argument("--debug", "-d", action="store_true", help="Enable debug logging (excluding engine).")
+    parser.add_argument("--debug-engine", action="store_true", help="Enable engine debug logging.")
     args = parser.parse_args()
 
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.WARNING)
+    logging.getLogger("chess.engine").setLevel(logging.DEBUG if args.debug_engine else logging.WARNING)
 
     asyncio.run(UserInterface().main(args.commands, args.config, args.upgrade), debug=args.debug)

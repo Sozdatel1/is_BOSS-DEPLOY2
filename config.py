@@ -170,9 +170,11 @@ class Config:
             limits_settings = settings["limits"] or {}
 
             engine_configs[key] = EngineConfig(
+                key,
                 settings["path"],
                 settings["ponder"],
                 settings["silence_stderr"],
+                settings.get("skip_test", False),
                 settings["move_overhead_multiplier"],
                 settings["uci_options"] or {},
                 LimitConfig(limits_settings.get("time"), limits_settings.get("depth"), limits_settings.get("nodes")),
@@ -520,7 +522,7 @@ class Config:
                     "initial_minutes+increment_seconds format."
                 )
 
-            types[matchmaking_type] = MatchmakingTypeConfig(
+            types[str(matchmaking_type)] = MatchmakingTypeConfig(
                 matchmaking_options["tc"],
                 matchmaking_options.get("rated"),
                 matchmaking_options.get("variant"),
