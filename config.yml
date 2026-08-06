@@ -26,7 +26,33 @@ engines:
       Move Overhead: 300 # Increase if your bot flags games too often.
       Contempt: 0
     limits: # Limits that end the move calculation early.
-  
+    
+  1+1: # Engine used for standard chess and when no suitable special engine is configured.
+    dir: "./engines" # Directory containing the engine.
+    name: "stockfish-ubuntu-x86-64-bmi2" # Binary name of the engine to use.
+    ponder: true # Think on opponent's time.
+    silence_stderr: false # Suppresses stderr output.
+    move_overhead_multiplier: 5.3 # Increase if your bot flags games too often. Default move overhead is 1 second per 1 minute initital time.
+    uci_options: # Arbitrary UCI options passed to the engine.
+      Threads: 12 # Max CPU threads the engine can use.
+      Hash: 2048 # Max memory (in megabytes) the engine can allocate.
+      Move Overhead: 300 # Increase if your bot flags games too often.
+      Contempt: 0
+    limits: # Limits that end the move calculation early.
+
+  2+1: # Engine used for standard chess and when no suitable special engine is configured.
+    dir: "./engines" # Directory containing the engine.
+    name: "stockfish-ubuntu-x86-64-bmi2" # Binary name of the engine to use.
+    ponder: true # Think on opponent's time.
+    silence_stderr: false # Suppresses stderr output.
+    move_overhead_multiplier: 5.3 # Increase if your bot flags games too often. Default move overhead is 1 second per 1 minute initital time.
+    uci_options: # Arbitrary UCI options passed to the engine.
+      Threads: 12 # Max CPU threads the engine can use.
+      Hash: 2048 # Max memory (in megabytes) the engine can allocate.
+      Move Overhead: 300 # Increase if your bot flags games too often.
+      Contempt: 0
+    limits: # Limits that end the move calculation early.
+    
   standard:
     dir: "./engines"
     name: "stockfish-ubuntu-x86-64-bmi2"
