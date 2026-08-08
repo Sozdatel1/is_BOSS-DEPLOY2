@@ -210,7 +210,6 @@ resign:
   min_rating: 3000
 
 challenge:
-  tournament: true
   concurrency: 3
   max_takebacks: 300000      
    
@@ -263,7 +262,8 @@ challenge:
     # - rated
     
 matchmaking:
-  tournament: true
+  
+
   delay: 580
   timeout: 30
   selection: cyclic
@@ -318,8 +318,27 @@ matchmaking:
     class:
       tc: 25+0
       rated: true
-      
-      
+
+  tournament:
+    waiting_period: 5                      # Time in minutes the bot doesn't start any other game before a tournament begins.
+    tracked_users:                          # Users whose tournaments are automatically joined.
+      - AAAAHHHoo
+      - MatchaLatteBob
+    tracked_teams:                          # Team IDs whose tournaments are automatically joined. (The ID can be found in the URL of a team page.)
+      - matcha-latte-bob-and-friends
+      - championship-compute
+  # own_team: TeamID                        # Own team that is used to join team battles.
+    variants:                               # Chess variants to join automatically (https://lichess.org/variant).
+      - standard
+      - chess960
+      - fromPosition
+      - antichess
+      - atomic
+      - crazyhouse
+      - horde
+      - kingOfTheHill
+      - racingKings
+      - threeCheck
 
 messages:
   greeting: "Приветствую! Я {me} работающий на {engine} .Мой создатель @shahmati23 .С нетерпением жду начала, удачи."
