@@ -318,10 +318,9 @@ matchmaking:
     class:
       tc: 25+0
       rated: true
-
-  tournament:
+tournament:
     waiting_period: 5                      # Time in minutes the bot doesn't start any other game before a tournament begins.
-    tracked_users:                          # Users whose tournaments are automatically joined.
+      tracked_users:                          # Users whose tournaments are automatically joined.
       - AAAAHHHoo
       - MatchaLatteBob
     tracked_teams:                          # Team IDs whose tournaments are automatically joined. (The ID can be found in the URL of a team page.)
