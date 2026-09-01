@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           # Подставляем твой созданный Classic Token с правами repo и workflow
           token: ${{ secrets.BOT_TOKEN }}
