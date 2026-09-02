@@ -72,7 +72,7 @@ engines:
   variants:
     dir: "./engines"
     name: "fairy-stockfish_x86-64-bmi2"
-    ponder: false
+    ponder: true
     silence_stderr: false
     move_overhead_multiplier: 5.0
     uci_options:
