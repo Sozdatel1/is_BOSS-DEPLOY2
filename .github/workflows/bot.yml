@@ -52,11 +52,11 @@ jobs:
           tar -xf stockfish.tar
           
           # 3. Забираем файл 'stockfish' из распакованной папки и кладем в engines под нужным именем
-          mv stockfish-linux-x86-64-universal/stockfish/stockfish-linux-x86-64-universal engines/stockfish-ubuntu-x86-64-bmi2
+          mv stockfish/stockfish-linux-x86-64-universal engines/stockfish-ubuntu-x86-64-bmi2
           
           # 4. Полностью удаляем временный архив и папку с исходниками
           rm -f stockfish.tar
-          rm -rf stockfish-linux-x86-64-universal
+          rm -rf stockfish
       - name: Make Stockfish Executable
         run: | 
              chmod +x ./engines/stockfish-ubuntu-x86-64-bmi2
