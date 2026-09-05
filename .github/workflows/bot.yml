@@ -45,19 +45,18 @@ jobs:
         run: |
           mkdir -p engines
           
-          # 1. Скачиваем официальный .tar архив Stockfish 18
-          curl -L "https://github.com/official-stockfish/Stockfish/releases/download/sf_18/stockfish-ubuntu-x86-64-bmi2.tar" -o stockfish.tar
+          # 1. Скачиваем официальный .tar архив Stockfish 19
+          curl -L "https://github.com/official-stockfish/Stockfish/releases/download/sf_19/stockfish-linux-x86-64-universal.tar.gz" -o stockfish.tar
           
           # 2. Распаковываем его в текущую директорию (без флага -C engines)
           tar -xf stockfish.tar
           
           # 3. Забираем файл 'stockfish' из распакованной папки и кладем в engines под нужным именем
-          mv stockfish/stockfish-ubuntu-x86-64-bmi2 engines/stockfish-ubuntu-x86-64-bmi2
+          mv stockfish-linux-x86-64-universal/stockfish/stockfish-linux-x86-64-universal engines/stockfish-ubuntu-x86-64-bmi2
           
           # 4. Полностью удаляем временный архив и папку с исходниками
           rm -f stockfish.tar
-          rm -rf stockfish-ubuntu-x86-64-bmi2
-
+          rm -rf stockfish-linux-x86-64-universal
       - name: Make Stockfish Executable
         run: | 
              chmod +x ./engines/stockfish-ubuntu-x86-64-bmi2
